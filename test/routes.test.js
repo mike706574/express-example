@@ -7,16 +7,15 @@ describe('GET /', () => {
   });
 });
 
-describe('GET /list', () => {
+describe('GET /animals/giraffe', () => {
   it('should render properly with valid parameters', async () => {
     await request(app)
-      .get('/list')
-      .query({ title: 'List title' })
+      .get('/animals/giraffe')
       .expect(200);
   });
 
-  it('should error without a valid parameter', async () => {
-    await request(app).get('/list').expect(500);
+  it('should not find animal', async () => {
+    await request(app).get('/animals/foo').expect(404);
   });
 });
 

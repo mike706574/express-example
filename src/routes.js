@@ -2,35 +2,32 @@ import { Router } from 'express';
 
 const routes = Router();
 
-/**
- * GET home page
- */
+const animals = new Map([['whale', {home: 'ocean',
+                                    size: 'huge'}],
+                         ['lion', {home: 'jungle',
+                                   size: 'big'}],
+                         ['giraffe', {home: 'savannah',
+                                      size: 'big'}]]);
+
 routes.get('/', (req, res) => {
   res.render('index', { title: 'Express Babel' });
 });
 
-/**
- * GET /list
- *
- * This is a sample route demonstrating
- * a simple approach to error handling and testing
- * the global error handler. You most certainly want to
- * create different/better error handlers depending on
- * your use case.
- */
-routes.get('/list', (req, res, next) => {
-  const { title } = req.query;
+routes.get('/animals/:name', (req, res, next) => {
+  const { name } = req.params;
 
-  if (title == null || title === '') {
-    // You probably want to set the response HTTP status to 400 Bad Request
-    // or 422 Unprocessable Entity instead of the default 500 of
-    // the global error handler (e.g check out https://github.com/kbariotis/throw.js).
-    // This is just for demo purposes.
-    next(new Error('The "title" parameter is required'));
-    return;
+  if(name == null) {
+    res.status(400)
+      .send('No name provided.');
   }
-
-  res.render('index', { title });
+  else if(animals.has(name)) {
+    res.status(200)
+      .send(animals.get(name));
+  }
+  else {
+    res.status(404)
+      .send(`Found no animal named ${name}.`);
+  }
 });
 
 export default routes;
