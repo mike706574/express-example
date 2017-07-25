@@ -1,32 +1,54 @@
 import { Router } from 'express';
+import { error } from './util';
 
 const routes = Router();
 
-const animals = new Map([['whale', {home: 'ocean',
-                                    size: 'huge'}],
-                         ['lion', {home: 'jungle',
-                                   size: 'big'}],
-                         ['giraffe', {home: 'savannah',
-                                      size: 'big'}]]);
+const animals = new Map();
 
 routes.get('/', (req, res) => {
-  res.render('index', { title: 'Express Babel' });
+  res.render('index', { title: 'Animals' });
 });
 
-routes.get('/animals/:name', (req, res, next) => {
+routes.get('/api/animals/:name', (req, res) => {
   const { name } = req.params;
 
   if(name == null) {
-    res.status(400)
-      .send('No name provided.');
+    error(res, 400, 'No name provided.');
   }
   else if(animals.has(name)) {
+    console.log(`Found ${name}`);
+    const animal = animals.get(name);
     res.status(200)
-      .send(animals.get(name));
+      .format({
+        html: function() {
+          res.send('<p>' + animal.name + '</p>');
+        },
+        text: function() {
+          res.send(animal.name);
+        },
+        json: function() {
+          res.json(animal);
+        }
+      });
   }
   else {
-    res.status(404)
-      .send(`Found no animal named ${name}.`);
+    error(res, 404, `Found no animal named ${name}.`);
+  }
+});
+
+routes.post('/api/animals', (req, res) => {
+  if(req.body) {
+    const animal = req.body,
+          { name } = animal;
+    if(animals.has(name)) {
+      error(res, 409, `${name} already exists.`);
+    }
+
+    animals.set(name, animal);
+    res.status(201).send(animal);
+  }
+  else {
+    error(res, 400, 'No body provided.');
   }
 });
 
