@@ -26,10 +26,13 @@
     "babel-cli": "^6.24.1",
     "babel-preset-env": "^1.4.0",
     "body-parser": "^1.17.1",
+    "cors": "^2.8.4",
     "express": "^4.15.2",
     "morgan": "^1.7.0",
+    "pg": "^7.0.2",
     "pug": "^2.0.0-beta11",
-    "rimraf": "^2.6.1"
+    "rimraf": "^2.6.1",
+    "winston": "^2.3.1"
   },
   "devDependencies": {
     "babel-jest": "^20.0.0",

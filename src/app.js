@@ -3,6 +3,7 @@ import cors from 'cors';
 import express from 'express';
 import logger from 'morgan';
 import path from 'path';
+import { log } from 'winston';
 
 import routes from './routes';
 import { error } from './util';
