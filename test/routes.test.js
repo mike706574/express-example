@@ -2,8 +2,6 @@ import request from 'supertest';
 import app from '../src/app.js';
 import * as winston from 'winston';
 
-winston.level = 'debug';
-
 describe('root', () => {
   it('should render properly', async () => {
     await request(app).get('/').expect(200);

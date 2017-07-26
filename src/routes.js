@@ -1,66 +1,78 @@
 import { Router } from 'express';
 import { error } from './util';
+import * as repo from './map';
 
 const routes = Router();
-
-const animals = new Map();
 
 routes.get('/', (req, res) => {
   res.render('index', { title: 'Animals' });
 });
 
-function vals(map) {
-  return Array.from(map.values());
-}
-
 routes.get('/api/animals', (req, res) => {
-  let {name} = req.query;
-
-  if(name) {
-    res.status(200)
-      .json(vals(animals).filter(animal => animal.name.includes(name)));
-  }
-  else {
-    res.status(200).json(vals(animals));
-  }
+  repo.getAnimals(req.query)
+    .then(({status, animals}) => {
+      if(status === 'ok') {
+        res.status(200).json(animals);
+      }
+      else {
+        error(res, 500, `Unexpected status: ${status}`);
+      }
+    });
 });
 
 routes.get('/api/animals/:name', (req, res) => {
-  const {name} = req.params;
+  const name = req.params.name;
 
-  if(name == null) {
-    error(res, 400, 'No name provided.');
-  }
-  else if(animals.has(name)) {
-    const animal = animals.get(name);
-    res.status(200)
-      .format({html: () => res.send('<p>' + animal.name + '</p>'),
-               text: () => res.send(animal.name),
-               json: () => res.json(animal)});
-  }
-  else {
-    error(res, 404, `Found no animal named ${name}.`);
-  }
+  repo.getAnimal(name)
+    .then(({status, message, animal}) => {
+
+      if(status === 'ok') {
+        res.status(200)
+          .format({html: () => res.send('<p>' + animal.name + '</p>'),
+                   text: () => res.send(animal.name),
+                   json: () => res.json(animal)});
+
+      }
+      else if( status === 'notFound' ) {
+        error(res, 404, `Found no animal named ${name}.`);
+      }
+      else if( status === 'badRequest' ) {
+        error(res, 400, message );
+      }
+      else {
+        error(res, 500, `Unexpected status: ${status}`);
+      }
+    });
 });
 
 routes.post('/api/animals', (req, res) => {
-  if(req.body) {
-    const animal = req.body;
-    if(animals.has(animal.name)) {
-      error(res, 409, `${animal.name} already exists.`);
-    }
-
-    animals.set(animal.name, animal);
-    res.status(201).send(animal);
-  }
-  else {
-    error(res, 400, 'No body provided.');
-  }
+  repo.addAnimal(req.body)
+    .then(({status, message, animal}) => {
+      if(status === 'created'){
+        res.status(201).send(animal);
+      }
+      else if(status === 'alreadyExists') {
+        error(res, 409, `${animal.name} already exists.`);
+      }
+      else if(status === 'badRequest') {
+        error(res, 409, `${animal.name} already exists.`);
+      }
+      else {
+        error(res, 500, `Unexpected status: ${status}`);
+      }
+  });
 });
 
 routes.delete('/api/animals', (req, res) => {
-  animals.clear();
-  res.status(204).send();
+  repo.clearAnimals(req.body)
+    .then(({status}) => {
+      if(status === 'cleared') {
+        res.status(204).send();
+      }
+      else {
+        error(res, 500, `Unexpected status: ${status}`);
+      }
+    });
 });
 
 export default routes;
